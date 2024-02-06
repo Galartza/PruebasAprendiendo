@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/presentacion/views/home_view.dart';
 import 'package:flutter_application_1/presentacion/views/hoy_views.dart';
 import 'package:flutter_application_1/presentacion/views/logros_view.dart';
 import 'package:flutter_application_1/presentacion/views/tareas_view.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({Key? key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -17,8 +16,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      const HomeViews(),
-      const HoyViews(),
+      HoyViews(), // Corregido el nombre de la clase
       const TareasViews(),
       const LogrosViews(),
     ];
@@ -99,12 +97,6 @@ class _MainScreenState extends State<MainScreen> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined, color: iconColor),
-              activeIcon: Icon(Icons.home, color: iconColor),
-              label: 'Inicio',
-              backgroundColor: Colors.transparent,
-            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month_outlined, color: iconColor),
               activeIcon: Icon(Icons.calendar_month, color: iconColor),
