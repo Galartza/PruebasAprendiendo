@@ -1,8 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:date_time_picker/date_time_picker.dart';
+import 'dart:convert';
 
 enum EstadoActividad { noConcretado, pendiente, enCurso, concretado }
+
+void main() {
+  runApp(MaterialApp(
+    home: LogrosViews(),
+  ));
+}
+
+class Actividad {
+  final String nombre;
+  final String categoria;
+  final DateTime fechaDesde;
+  final DateTime fechaHasta;
+  final String ubicacionDesde;
+  final String ubicacionHasta;
+
+  Actividad({
+    required this.nombre,
+    required this.categoria,
+    required this.fechaDesde,
+    required this.fechaHasta,
+    required this.ubicacionDesde,
+    required this.ubicacionHasta,
+  });
+
+  EstadoActividad determinarEstado() {
+    final ahora = DateTime.now();
+    if (ahora.isBefore(fechaDesde)) {
+      return EstadoActividad.noConcretado;
+    } else if (ahora.isAfter(fechaHasta)) {
+      return EstadoActividad.concretado;
+    } else if (ahora.isAfter(fechaDesde) && ahora.isBefore(fechaHasta)) {
+      return EstadoActividad.enCurso;
+    } else {
+      return EstadoActividad.pendiente;
+    }
+  }
+}
 
 class LogrosViews extends StatefulWidget {
   const LogrosViews({Key? key}) : super(key: key);
@@ -46,67 +85,67 @@ class _LogrosViewsState extends State<LogrosViews> {
       },
     );
   }
-Widget _buildActividadItem(Actividad actividad) {
-  final estado = actividad.determinarEstado();
-  String estadoText = '';
-  Color? cardColor;
 
-  switch (estado) {
-    case EstadoActividad.noConcretado:
-      estadoText = 'No Concretado';
-      cardColor = Colors.red.withOpacity(0.5); // Rojo transparente
-      break;
-    case EstadoActividad.pendiente:
-      estadoText = 'Pendiente';
-      cardColor = Colors.yellow.withOpacity(0.5); // Amarillo transparente
-      break;
-    case EstadoActividad.enCurso:
-      estadoText = 'En Curso';
-      cardColor = Colors.orange.withOpacity(0.5); // Naranja transparente
-      break;
-    case EstadoActividad.concretado:
-      estadoText = 'Concretado';
-      cardColor = Colors.green.withOpacity(0.5); // Verde transparente
-      break;
+  Widget _buildActividadItem(Actividad actividad) {
+    final estado = actividad.determinarEstado();
+    String estadoText = '';
+    Color? cardColor;
+
+    switch (estado) {
+      case EstadoActividad.noConcretado:
+        estadoText = 'No Concretado';
+        cardColor = Colors.red.withOpacity(0.5); // Rojo transparente
+        break;
+      case EstadoActividad.pendiente:
+        estadoText = 'Pendiente';
+        cardColor = Colors.yellow.withOpacity(0.5); // Amarillo transparente
+        break;
+      case EstadoActividad.enCurso:
+        estadoText = 'En Curso';
+        cardColor = Colors.orange.withOpacity(0.5); // Naranja transparente
+        break;
+      case EstadoActividad.concretado:
+        estadoText = 'Concretado';
+        cardColor = Colors.green.withOpacity(0.5); // Verde transparente
+        break;
+    }
+
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      color: cardColor,
+      child: ListTile(
+        title: Text('Actividad: ${actividad.nombre}'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Categoría: ${actividad.categoria}'),
+            Text('Estado: $estadoText'),
+            Text('Fecha Desde: ${actividad.fechaDesde.toString()}'),
+            Text('Fecha Hasta: ${actividad.fechaHasta.toString()}'),
+            Text('Ubicación Desde: ${actividad.ubicacionDesde}'),
+            Text('Ubicación Hasta: ${actividad.ubicacionHasta}'),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.location_on),
+              onPressed: () {
+                _openGoogleMaps(actividad);
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.directions),
+              onPressed: () {
+                _iniciarRecorrido(actividad);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  return Card(
-    margin: EdgeInsets.all(8.0),
-    color: cardColor,
-    child: ListTile(
-      title: Text('Actividad: ${actividad.nombre}'),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Categoría: ${actividad.categoria}'),
-          Text('Estado: $estadoText'),
-          Text('Fecha Desde: ${actividad.fechaDesde.toString()}'),
-          Text('Fecha Hasta: ${actividad.fechaHasta.toString()}'),
-          Text('Ubicación Desde: ${actividad.ubicacionDesde}'),
-          Text('Ubicación Hasta: ${actividad.ubicacionHasta}'),
-        ],
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.location_on),
-            onPressed: () {
-              _openGoogleMaps(actividad);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.directions),
-            onPressed: () {
-              _iniciarRecorrido(actividad);
-            },
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 
   void _showForm() {
     showModalBottomSheet(
@@ -343,41 +382,4 @@ class _FormularioActividadState extends State<FormularioActividad> {
       },
     );
   }
-}
-
-class Actividad {
-  final String nombre;
-  final String categoria;
-  final DateTime fechaDesde;
-  final DateTime fechaHasta;
-  final String ubicacionDesde;
-  final String ubicacionHasta;
-
-  Actividad({
-    required this.nombre,
-    required this.categoria,
-    required this.fechaDesde,
-    required this.fechaHasta,
-    required this.ubicacionDesde,
-    required this.ubicacionHasta,
-  });
-
-  EstadoActividad determinarEstado() {
-    final ahora = DateTime.now();
-    if (ahora.isBefore(fechaDesde)) {
-      return EstadoActividad.noConcretado;
-    } else if (ahora.isAfter(fechaHasta)) {
-      return EstadoActividad.concretado;
-    } else if (ahora.isAfter(fechaDesde) && ahora.isBefore(fechaHasta)) {
-      return EstadoActividad.enCurso;
-    } else {
-      return EstadoActividad.pendiente;
-    }
-  }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: LogrosViews(),
-  ));
 }
