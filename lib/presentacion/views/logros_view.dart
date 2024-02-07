@@ -13,7 +13,7 @@ class LogrosViews extends StatefulWidget {
 
 class _LogrosViewsState extends State<LogrosViews> {
   List<Actividad> actividades = [];
-  String _selectedCategoria = 'Deporte';
+  //final String _selectedCategoria = 'Deporte';
 
   @override
   Widget build(BuildContext context) {
